@@ -1,3 +1,14 @@
+/**
+ * A Robots Matrx World game, made with Java Swing
+ * @author Roman Smirnov 312914443
+ * @since 15/4/2016
+ *
+ * NOTE: was using mouse clicks instead of required 30 moves for debug, ran out of time before needing to turn in. Sorry.
+ * Left click - add robot
+ * Left click on robot - move robot
+ * Right click on robot - turn robot
+ */
+
 package com.company;
 
 import java.awt.*;
@@ -8,32 +19,50 @@ import javax.swing.border.Border;
 import javax.swing.border.MatteBorder;
 
 
+/**
+ * The main class containing the main method
+ */
 public class Main {
     private static RobotsWorld mRobotsWorld;
     private static int mSize;
     private static final int DIMENSION = 50;
 
+    /**
+     * the main method
+     * @param args unused
+     */
     public static void main(String[] args) {
         int size = 0;
         try {
+            //get the world size from the user
             size = Integer.parseInt(JOptionPane.showInputDialog(null,
-                    "Text",
+                    "Input World Size",
                     JOptionPane.INFORMATION_MESSAGE));
+
+            //if user pressed cancel or input wasn't a number
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Not A Number", "ERROR", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Bye Bye", "Bye Bye", JOptionPane.WARNING_MESSAGE);
             System.exit(0);
         }
+        // if input was zero or less
         if(size <= 0){
             JOptionPane.showMessageDialog(null, "Size should be greater than 0", "ERROR", JOptionPane.WARNING_MESSAGE);
             System.exit(0);
         }
+
+        //start the game by instantiating an object of class Main
         new Main(size);
     }
 
+    /**
+     * Main class constructor
+     * @param size size of the matrix to be created
+     */
     public Main(int size) {
         mRobotsWorld = new RobotsWorld(size);
         mSize = size;
 
+        //window/frame set up
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -41,7 +70,7 @@ public class Main {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                 } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
                 }
-                JFrame frame = new JFrame("Testing");
+                JFrame frame = new JFrame("Robots World Game");
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.setLayout(new BorderLayout());
                 frame.add(new TestPane());
@@ -52,20 +81,28 @@ public class Main {
         });
     }
 
+    /**
+     * Inner class TestPane - this one holds all the matrix cells
+     */
     public class TestPane extends JPanel {
 
+        /**
+         * main empty constructor
+         */
         public TestPane() {
 
+            //set a gird layout to hold all the cells
             setLayout(new GridBagLayout());
-
             GridBagConstraints gbc = new GridBagConstraints();
+            //i.e rows are Y coords, cols are X coords
             for (int row = 0; row < mSize; row++) {
                 for (int col = 0; col < mSize; col++) {
                     gbc.gridx = row;
                     gbc.gridy = col;
-
+                    //create a CellPane in the current grid position
                     CellPane cellPane = new CellPane(new Position(row,col),this);
                     Border border = null;
+                    //add some cool looking borders
                     if (col < 4) {
                         if (row < 4) {
                             border = new MatteBorder(1, 1, 0, 0, Color.GRAY);
@@ -79,6 +116,7 @@ public class Main {
                             border = new MatteBorder(1, 1, 1, 1, Color.GRAY);
                         }
                     }
+                    //add the border and cell to matrix panel
                     cellPane.setBorder(border);
                     add(cellPane, gbc);
                 }
@@ -86,6 +124,9 @@ public class Main {
         }
     }
 
+    /**
+     * inner class CellPane - this one is single cell in the matrix of cells
+     */
     public class CellPane extends JPanel {
 
         //private fields
@@ -93,17 +134,26 @@ public class Main {
         private Position mPosition;
 
 
-        //cellpane constructor
+        /**
+         * main constructor
+         * @param position Position object, holds the position in the matrix
+         * @param testPane TestPane object, holds the parent matrix - used to call repaint()
+         */
         public CellPane(Position position, final TestPane testPane) {
 
             //TODO: add null check
             mPosition = position;
             defaultBackground = getBackground();
 
+            // a mouse listener to detect clicks and play the game
+            /*
+             * Left click - add robot
+             * Left click on robot - move robot
+             * Right click on robot - turn robot
+             */
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-
                     //move robot if position not empty
                     if(mRobotsWorld.getRobot(mPosition)!=null){
                         //if it was a right click
@@ -132,12 +182,12 @@ public class Main {
                     }
                 }
 
-
+                //highlight the cell currently pointed at
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     setBackground(Color.BLUE);
                 }
-
+                //de-highlight the cell currently pointed at
                 @Override
                 public void mouseExited(MouseEvent e) {
                     resetDefaultBackground();
@@ -145,13 +195,22 @@ public class Main {
             });
 
         }
+
+        /**
+         * the main paint method - this one also gets recalled whe repaint() is called
+         * @param  g Graphics object
+         */
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
+
+            //check if there's a robot in the current cell, if not returns
             if(mRobotsWorld.getRobot(mPosition) == null) {
                 return;
             }
+            //if the check (above) passed, draw a circle and direction marker inside the current cell
+
             //draw oval
             Graphics2D graphics2D = (Graphics2D) g;
             graphics2D.setColor(Color.magenta);
@@ -182,17 +241,14 @@ public class Main {
 
         @Override
         public Dimension getPreferredSize() {
-
             return new Dimension(DIMENSION, DIMENSION);
         }
 
         public void resetDefaultBackground(){
+
             setBackground(defaultBackground);
         }
 
-        public Position getPosition(){
-            return mPosition;
-        }
     }
 
 }
